@@ -1,10 +1,13 @@
-package sk.casino.logic;
+package sk.adamkatrenic.logic;
 
 public enum Symbol {
-    CHERRY(2, "🍒", 50),
-    LEMON(5, "🍋", 30),
-    ORANGE(10, "🍊", 15),
-    SEVEN(50, "7️⃣", 5);
+    // payout, icon, weight
+    CHERRY(3, "🍒", 55),
+    LEMON(7, "🍋", 35),
+    ORANGE(14, "🍊", 18),
+    SEVEN(100, "7️⃣", 4),
+    WILD(0, "🃏", 4),
+    SCATTER(0, "🌟", 4);
 
     public final int payout;
     public final String icon;
