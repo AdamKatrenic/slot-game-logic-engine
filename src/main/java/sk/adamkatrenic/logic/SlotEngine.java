@@ -95,4 +95,19 @@ public class SlotEngine {
         }
         return count;
     }
+
+    public double playGamble(double currentWin, String playerChoice) {
+        boolean isRed = random.nextBoolean();
+        String result = isRed ? "R" : "B";
+
+        System.out.println("Karta je: " + (isRed ? "[ČERVENÁ]" : "[ČIERNA]"));
+
+        if (playerChoice.equalsIgnoreCase(result)) {
+            System.out.println("Gratulujem! Zdvojnásobil si výhru.");
+            return currentWin * 2;
+        } else {
+            System.out.println("Bohužiaľ, prehral si všetko.");
+            return 0;
+        }
+    }
 }

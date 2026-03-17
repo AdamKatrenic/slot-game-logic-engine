@@ -1,0 +1,18 @@
+--- Session Report [2026/03/17 17:38:03] ---
+Počet spinov: 41
+Celková stávka: 2050.0 €
+Celková výhra: 1070.0 €
+Reálne RTP relácie: 52,20 %
+--------------------------------------------------
+--- Session Report [2026/03/17 17:38:35] ---
+Počet spinov: 147
+Celková stávka: 6350.0 €
+Celková výhra: 5400.000000000001 €
+Reálne RTP relácie: 85,04 %
+--------------------------------------------------
+--- Session Report [2026/03/17 17:41:07] ---
+Počet spinov: 36
+Celková stávka: 1800.0 €
+Celková výhra: 806.6666666666666 €
+Reálne RTP relácie: 44,81 %
+--------------------------------------------------
