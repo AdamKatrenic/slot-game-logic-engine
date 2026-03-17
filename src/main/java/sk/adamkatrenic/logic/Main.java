@@ -91,7 +91,10 @@ public class Main {
 
     private String promptAction() {
         System.out.print("\n[ENTER] Spin | [PAR] Report | [EXIT] Koniec > ");
-        return scanner.nextLine();
+        if (scanner.hasNextLine()) {
+            return scanner.nextLine().trim();
+        }
+        return "";
     }
 
     private void printWelcomeMessage() {

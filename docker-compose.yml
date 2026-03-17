@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  slot-game:
+    build: .
+    image: adamkatrenic/slot-engine:v1.2
+    stdin_open: true
+    tty: true
