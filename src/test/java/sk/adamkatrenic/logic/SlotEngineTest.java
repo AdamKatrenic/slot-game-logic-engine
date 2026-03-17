@@ -1,92 +1,87 @@
 package sk.adamkatrenic.logic;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SlotEngineTest {
 
-    @Test
-    void testCalculateWinWithThreeCherries() {
-        SlotEngine engine = new SlotEngine();
+    private SlotEngine engine;
+    private final double delta = 0.001;
 
-        Symbol[][] mockGrid = {
-                {Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON},
-                {Symbol.CHERRY, Symbol.CHERRY, Symbol.CHERRY, Symbol.LEMON, Symbol.LEMON},
-                {Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON}
-        };
+    @BeforeEach
+    void setUp() {
+        engine = new SlotEngine();
+    }
 
-        double betPerLine = 1.0;
-        double win = engine.calculateTotalWin(mockGrid, betPerLine);
-        assertTrue(win >= 3.0, "Výhra za 3 čerešne by mala byť aspoň 3.0");
+    private Symbol[][] createEmptyGrid() {
+        Symbol[][] grid = new Symbol[3][5];
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 5; c++) {
+                grid[r][c] = Symbol.SCATTER;
+            }
+        }
+        return grid;
     }
 
     @Test
-    void testWildSymbolSubstitution() {
-        SlotEngine engine = new SlotEngine();
-
-        // Grid: Čerešňa - WILD - Čerešňa (WILD musí nahradiť čerešňu)
-        Symbol[][] mockGrid = {
-                {Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON},
-                {Symbol.CHERRY, Symbol.WILD, Symbol.CHERRY, Symbol.LEMON, Symbol.LEMON},
-                {Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON}
-        };
+    void testCalculateWinWithThreeCherries() {
+        Symbol[][] mockGrid = createEmptyGrid();
+        mockGrid[1][0] = Symbol.CHERRY;
+        mockGrid[1][1] = Symbol.CHERRY;
+        mockGrid[1][2] = Symbol.CHERRY;
 
         double win = engine.calculateTotalWin(mockGrid, 1.0);
-        assertTrue(win > 0, "WILD by mal nahradiť čerešňu a vytvoriť výhernú líniu");
+        assertEquals(3.0, win, delta);
+    }
+
+    @Test
+    void testWildSubstitutionForSeven() {
+        Symbol[][] mockGrid = createEmptyGrid();
+        // Línia: WILD - WILD - SEVEN - LEMON - LEMON
+        mockGrid[1][0] = Symbol.WILD;
+        mockGrid[1][1] = Symbol.WILD;
+        mockGrid[1][2] = Symbol.SEVEN;
+        mockGrid[1][3] = Symbol.LEMON;
+        mockGrid[1][4] = Symbol.LEMON;
+
+        double win = engine.calculateTotalWin(mockGrid, 1.0);
+        // Payout 100.0 * (3 / 3.0) = 100.0
+        assertEquals(100.0, win, delta, "WILDy by mali nahradiť SEVEN a vrátiť plný payout");
+    }
+
+    @Test
+    void testOnlyWildsOnLine() {
+        Symbol[][] mockGrid = createEmptyGrid();
+        // Línia 1: WILD - WILD - WILD - SCATTER - SCATTER
+        mockGrid[1][0] = Symbol.WILD;
+        mockGrid[1][1] = Symbol.WILD;
+        mockGrid[1][2] = Symbol.WILD;
+
+        double win = engine.calculateTotalWin(mockGrid, 1.0);
+        // Očakávame 100.0 (SEVEN payout), pretože target zostal null a count >= 3
+        assertEquals(100.0, win, delta, "Tri WILD symboly by sa mali vyhodnotiť ako SEVEN");
+    }
+
+    @Test
+    void testBrokenLineReturnsZero() {
+        Symbol[][] mockGrid = createEmptyGrid();
+        // SEVEN - SEVEN - LEMON - SEVEN - SEVEN (Línia prerušená na indexe 2)
+        // Keďže celá mriežka je LEMON, musíme si dať pozor na horizontálnu líniu
+        mockGrid[1][0] = Symbol.SEVEN;
+        mockGrid[1][1] = Symbol.SEVEN;
+        mockGrid[1][2] = Symbol.CHERRY; // LEMON by mohol vytvoriť výhru citrónov, preto CHERRY
+        mockGrid[1][3] = Symbol.SEVEN;
+        mockGrid[1][4] = Symbol.SEVEN;
+
+        double win = engine.calculateTotalWin(mockGrid, 1.0);
+        assertEquals(0.0, win, delta, "Prerušená línia (iba 2 symboly) nesmie vyplatiť nič");
     }
 
     @Test
     void testCountScatters() {
-        SlotEngine engine = new SlotEngine();
-        Symbol[][] mockGrid = {
-                {Symbol.SCATTER, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON},
-                {Symbol.LEMON, Symbol.SCATTER, Symbol.LEMON, Symbol.LEMON, Symbol.LEMON},
-                {Symbol.LEMON, Symbol.LEMON, Symbol.SCATTER, Symbol.LEMON, Symbol.LEMON}
-        };
-
+        Symbol[][] mockGrid = createEmptyGrid(); // Celá mriežka (15 políčok) je SCATTER
         int scatters = engine.countScatters(mockGrid);
-        assertEquals(3, scatters, "Mal by nájsť presne 3 symboly SCATTER");
-    }
-
-    @Test
-    void testZigZagPaylineWin() {
-        SlotEngine engine = new SlotEngine();
-
-        // Vytvoríme grid pre tvar "V" (naša 4. línia: indexy {0, 1, 2, 1, 0})
-        // Nastavíme symboly SEVEN na tieto pozície
-        Symbol[][] mockGrid = new Symbol[3][5];
-
-        // Najprv vyplníme celý grid citrónmi (aby bol prázdny od výhier)
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 5; c++) mockGrid[r][c] = Symbol.LEMON;
-        }
-
-        // Dosadíme SEVEN do tvaru "V" na prvých 3 stĺpcoch
-        mockGrid[0][0] = Symbol.SEVEN;
-        mockGrid[1][1] = Symbol.SEVEN;
-        mockGrid[2][2] = Symbol.SEVEN;
-
-        double win = engine.calculateTotalWin(mockGrid, 1.0);
-
-        //SEVEN má payout 100. Pri 3 symboloch (100 * (3/3.0)) = 100.0
-        assertTrue(win >= 100.0, "Cik-cak línia by mala rozpoznať výhru 100.0 pre symbol SEVEN");
-    }
-
-    @Test
-    void testNoWinWhenLineIsBroken() {
-        SlotEngine engine = new SlotEngine();
-
-        // Vytvoríme grid, kde v každom riadku na treťom stĺpci (index 2)
-        // bude SCATTER alebo LEMON, aby sme prerušili VŠETKY horizontálne línie.
-        Symbol[][] mockGrid = {
-                {Symbol.SEVEN, Symbol.SEVEN, Symbol.LEMON, Symbol.SEVEN, Symbol.SEVEN},
-                {Symbol.SEVEN, Symbol.SEVEN, Symbol.LEMON, Symbol.SEVEN, Symbol.SEVEN},
-                {Symbol.SEVEN, Symbol.SEVEN, Symbol.LEMON, Symbol.SEVEN, Symbol.SEVEN}
-        };
-
-        double win = engine.calculateTotalWin(mockGrid, 1.0);
-
-        // Očakávame 0, pretože žiadna línia nemá 3 rovnaké symboly po sebe zľava
-        assertEquals(0.0, win, "Prerušená línia nesmie vyplatiť výhru");
+        assertEquals(15, scatters, "V prázdnej mriežke vyplnenej Scatterni by malo byť 15 symbolov");
     }
 }

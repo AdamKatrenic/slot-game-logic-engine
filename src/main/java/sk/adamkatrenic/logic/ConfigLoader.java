@@ -25,6 +25,12 @@ public class ConfigLoader {
 
     public double getDoubleProperty(String key, double defaultValue) {
         String value = properties.getProperty(key);
-        return (value != null) ? Double.parseDouble(value) : defaultValue;
+        if (value == null) return defaultValue;
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            System.err.println("Chyba v configu pre kľúč: " + key + ". Používam default: " + defaultValue);
+            return defaultValue;
+        }
     }
 }

@@ -6,13 +6,25 @@ import java.util.Random;
 
 public class SlotEngine {
     private final Random random = new Random();
+    private final List<Payline> paylines;
+    private final int totalWeight;
+
+    public SlotEngine() {
+        int tempWeight = 0;
+        for (Symbol s : Symbol.values()) {
+            tempWeight += s.weight;
+        }
+        this.totalWeight = tempWeight;
+
+        paylines = new ArrayList<>();
+        paylines.add(new Payline(new int[]{0, 0, 0, 0, 0}));
+        paylines.add(new Payline(new int[]{1, 1, 1, 1, 1}));
+        paylines.add(new Payline(new int[]{2, 2, 2, 2, 2}));
+        paylines.add(new Payline(new int[]{0, 1, 2, 1, 0}));
+        paylines.add(new Payline(new int[]{2, 1, 0, 1, 2}));
+    }
 
     public Symbol getRandomSymbol() {
-        int totalWeight = 0;
-        for (Symbol s : Symbol.values()) {
-            totalWeight += s.weight;
-        }
-
         int rnd = random.nextInt(totalWeight);
         int currentSum = 0;
         for (Symbol s : Symbol.values()) {
@@ -34,60 +46,41 @@ public class SlotEngine {
         return grid;
     }
 
-    private List<Payline> paylines;
-
-    public SlotEngine() {
-        paylines = new ArrayList<>();
-
-        paylines.add(new Payline(new int[]{0, 0, 0, 0, 0}));
-        paylines.add(new Payline(new int[]{1, 1, 1, 1, 1}));
-        paylines.add(new Payline(new int[]{2, 2, 2, 2, 2}));
-
-        paylines.add(new Payline(new int[]{0, 1, 2, 1, 0}));
-
-        paylines.add(new Payline(new int[]{2, 1, 0, 1, 2}));
-
-        paylines.add(new Payline(new int[]{0, 1, 2, 2, 2}));
-    }
-
     public double calculateTotalWin(Symbol[][] grid, double betPerLine) {
         double totalWin = 0;
 
         for (Payline line : paylines) {
             int[] pos = line.getPositions();
+            Symbol target = null;
+            int count = 0;
 
-            Symbol firstSymbol = grid[pos[0]][0];
+            for (int col = 0; col < 5; col++) {
+                Symbol current = grid[pos[col]][col];
+                if (current == null || current == Symbol.SCATTER) break;
 
-            if (firstSymbol == Symbol.SCATTER) continue;
-
-            Symbol target = firstSymbol;
-            if (target == Symbol.WILD) {
-                for (int col = 1; col < 5; col++) {
-                    Symbol s = grid[pos[col]][col];
-                    if (s != Symbol.WILD && s != Symbol.SCATTER) {
-                        target = s;
+                if (target == null) {
+                    if (current != Symbol.WILD) {
+                        target = current;
+                    }
+                    count++;
+                } else {
+                    if (current == target || current == Symbol.WILD) {
+                        count++;
+                    } else {
                         break;
                     }
                 }
             }
 
-            if (target == Symbol.WILD || target == Symbol.SCATTER) {
+            // Ak línia obsahuje aspoň 3 symboly a sú to len WILDY (target ostal null)
+            // ALEBO ak chceme, aby čistá WILD línia mala vždy cenu SEVEN:
+            if (count >= 3 && target == null) {
                 target = Symbol.SEVEN;
             }
 
-            int count = 0;
-            for (int col = 0; col < 5; col++) {
-                Symbol current = grid[pos[col]][col];
-
-                if (current == target || current == Symbol.WILD) {
-                    count++;
-                } else {
-                    break;
-                }
-            }
-
-            if (count >= 3) {
-                totalWin += betPerLine * target.payout;
+            if (count >= 3 && target != null) {
+                double multiplier = count / 3.0;
+                totalWin += betPerLine * target.payout * multiplier;
             }
         }
         return totalWin;
@@ -102,5 +95,4 @@ public class SlotEngine {
         }
         return count;
     }
-
 }
