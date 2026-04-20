@@ -54,3 +54,33 @@ Aplikácia je plne dockerizovaná pre jednoduchú prenosnosť a testovanie v izo
 ```bash
 # Spustenie sady testov integrity
 mvn test
+
+
+## Spustenie
+
+### Požiadavky
+- Java 17+
+- Maven 3.8+
+
+### Testy
+```bash
+mvn test
+```
+
+### Monte Carlo simulácia
+```bash
+mvn compile -q
+mvn exec:java -Dexec.mainClass="sk.adamkatrenic.logic.RtpSimulator"
+```
+
+### Docker
+```bash
+docker build -t slot-engine .
+docker run slot-engine
+```
+
+---
+
+## Autor
+
+Adam Katrenic – [github.com/AdamKatrenic](https://github.com/AdamKatrenic)
