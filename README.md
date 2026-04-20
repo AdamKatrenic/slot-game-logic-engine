@@ -48,14 +48,6 @@ Validácia systému prebehla na vzorke **1 000 000 spinov**. Výsledky potvrdzuj
 
 Projekt obsahuje komplexnú sadu unit testov, ktoré simulujú špecifické mriežky (Mock Grids) na overenie správnosti výpočtov.
 
-## Deployment
-
-Aplikácia je plne dockerizovaná pre jednoduchú prenosnosť a testovanie v izolovanom prostredí.
-```bash
-# Spustenie sady testov integrity
-mvn test
-
-
 ## Spustenie
 
 ### Požiadavky
